@@ -43,7 +43,7 @@ def first_time():
         for things in animelist[i]:
             ans+=things+"\n"
     print(ans)
-    file.write(ans)
+    file.write(ans.strip())
     file.close()
 #-------Startup-------
 
@@ -95,20 +95,29 @@ class Commands(commands.Cog):
         await ctx.channel.send("User {}'s list: haha jokes on u i havent done this part yet".format(ctx.author))
 
     @commands.command(help = "[Anime Name] to add an anime to your watch list")
-    async def add(self,ctx,anime):
+    async def add(self,ctx,name):
         #search and add the latest thing
         
         try:
             await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,anime))
+            for i in range(len(animelist)):
+                if animelist[i][0] == name:
+                    animelist[i].append(ctx.author)
+            
         except:
-            await ctx.channel.send("Name failure")
+            await ctx.channel.send("Name failure. Pls type the EXACT NAME LMAOOOOO")
+    @commands.command(help = "When you're a weeb and must have all the updates")
+    async def suball(self,ctx):
+        for i in range(len(animelist)):
+            animelist[i].append(ctx.author)
+        await ctx.channel.send("Everything has been added. ".format(ctx.author))
 
 #-------Background Tasks-------
 @tasks.loop(minutes = 10)
 async def check_list():
     global animelist
     #Check if new episodes got updated
-    
+    """
     for i in range(len(animelist)):
         link = animelist[i][1]
         name = animelist[i][0]
@@ -120,7 +129,7 @@ async def check_list():
                 await client.send_message(person,"{} got a new update!".format(name))
                 print(person)
             animelist[i][2] = updated_ep
-    
+    """
 
     #update ongoing anime list
     print("Checking")
@@ -131,7 +140,6 @@ async def check_list():
     new_anime = []
     done_anime = []
     ongoing = []
-    print(animelist,"this")
     for stuff in online_list:
         name = stuff[0]
         link = stuff[1]
@@ -166,14 +174,13 @@ async def check_list():
         #also announce new anime hear with message
 
     #rewrite to file
-    
-    file.open("animelist.txt","w",encoding = 'utf-8')
+    file = open("animelist.txt","w",encoding = 'utf-8')
     ans = ""
     for i in range(len(animelist)):
         ans+="#####\n"
         for things in animelist[i]:
             ans+=things+"\n"
-    file.write(ans)
+    file.write(ans.strip())
     file.close()
 
     
@@ -201,4 +208,4 @@ Ep number, excess stuff
     
                 
 client.add_cog(Commands(client))
-#client.run(TOKEN)
+client.run(TOKEN)
