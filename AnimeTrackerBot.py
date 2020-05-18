@@ -60,16 +60,32 @@ class Commands(commands.Cog):
     @commands.command(help = "[Username] [Anime Name] to add an anime to your watch list")
     async def add(self,ctx,name,anime):
         #search and add the latest thing
-        soup = get_page(anime)
-        get_episode(soup)
+        
         try:
             
+            soup = get_page(anime)
+            get_episode(soup)
             
             await ctx.channel.send("User {}'s list will be updated to include {}.".format(name,anime))
         except:
             await ctx.channel.send("Link failure")
         
+#To do:
+"""
+In order:
+Every 30 mins:
+Look in list and see if the ep # has increased. If so, ping all ppl under
+Update the list:
+What has ended, what is new, and tell ppl about those
 
+Asynching:
+User can add anime based on name
+User can remove anime based on name
+
+Maybe:
+Ep number, excess stuff
+
+"""
     
         
 
