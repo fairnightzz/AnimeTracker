@@ -26,7 +26,24 @@ def get_episode(url):
     last = soup.find('ul', id = "episode_page").li.a["ep_end"]
     return last
     
+def first_time():
+    file = open("animelist.txt","w")
+    animelist = []
 
+    soup = get_page("https://gogoanime.io/")
+    online_list = get_list(soup)
+
+    for i in online_list:
+        animelist.append([i[0],i[1],get_episode(i[1])])
+        print("done")
+
+    ans = ""
+    for i in range(len(animelist)):
+        ans+="#####\n"
+        for things in animelist[i]:
+            ans+=things+"\n"
+    file.write(ans)
+    file.close()
 #-------Startup-------
 
 animelist = []
@@ -93,10 +110,14 @@ async def check_list():
     
     for i in range(len(animelist)):
         link = animelist[i][1]
+        name = animelist[i][0]
         ep = animelist[i][2]
         updated_ep = get_episode(link)
-        if ep<updated_ep:
+        if int(ep)<int(updated_ep):
             #send update to ppl under name
+            for person in animelist[i][4:]:
+                await client.send_message(person,"{} got a new update!".format(name))
+                print(person)
             animelist[i][2] = updated_ep
     
 
@@ -145,7 +166,14 @@ async def check_list():
 
     #rewrite to file
     
-        
+    file.open("animelist.txt","w")
+    ans = ""
+    for i in range(len(animelist)):
+        ans+="#####\n"
+        for things in animelist[i]:
+            ans+=things+"\n"
+    file.write(ans)
+    file.close()
 
     
 
