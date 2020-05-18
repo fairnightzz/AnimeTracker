@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 from privatekeylmao import token
 TOKEN = token
-
+started = False
 #-------Scraping-------
 def get_page(url):
     url = url
@@ -25,6 +25,9 @@ def get_episode(url):
     soup = get_page("https://www19.gogoanime.io"+url)
     last = soup.find('ul', id = "episode_page").li.a["ep_end"]
     return last
+
+def get_recent():
+    
     
 def first_time():
     file = open("animelist.txt","w",encoding = 'utf-8')
@@ -53,6 +56,7 @@ client = commands.Bot(command_prefix="!")
 
 @client.event
 async def on_ready():
+    global started
     global animelist
     print("Anime has logged in")
     print(client.user.name)
@@ -63,24 +67,25 @@ async def on_ready():
         print(server.name)
     print("Bot Status Set")
 
+    if not started:
+        started = True
 
-
-    #Before you run tasks take the text file
-    file = open("animelist.txt","r",encoding = 'utf-8')
-    anime = file.read().split("\n")
-    file.close()
-    animelist = []
-    
-    for i in range(len(anime)):
-        if anime[i] == "#####":
-            animelist.append([])
-        else:
-            animelist[-1].append(anime[i])
-    
-    await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
-    print("start task")
-    check_list.start()
-    print("end task")
+        #Before you run tasks take the text file
+        file = open("animelist.txt","r",encoding = 'utf-8')
+        anime = file.read().split("\n")
+        file.close()
+        animelist = []
+        
+        for i in range(len(anime)):
+            if anime[i] == "#####":
+                animelist.append([])
+            else:
+                animelist[-1].append(anime[i])
+        
+        await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
+        print("start task")
+        check_list.start()
+        print("end task")
 
 class Commands(commands.Cog):
     def __init__(self, client):
@@ -111,6 +116,7 @@ class Commands(commands.Cog):
         await ctx.channel.send("Everything has been added. ".format(ctx.author))
 
 #-------Background Tasks-------
+        
 @tasks.loop(minutes = 10)
 async def check_list():
     global animelist
