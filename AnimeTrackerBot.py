@@ -21,8 +21,10 @@ def get_list(soup):
     llist = [[i.a["title"],i.a["href"]] for i in newsoup.find_all('li')]
     return llist
 
-def get_episode(soup):
-    episodes = soup.find('div', id = "stats")
+def get_episode(url):
+    soup = get_page("https://www19.gogoanime.io"+url)
+    last = soup.find('ul', id = "episode_page").li.a["ep_end"]
+    return last
     
 
 #-------Startup-------
@@ -79,9 +81,6 @@ class Commands(commands.Cog):
         #search and add the latest thing
         
         try:
-            
-            
-            
             await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,anime))
         except:
             await ctx.channel.send("Link failure")
@@ -91,8 +90,14 @@ class Commands(commands.Cog):
 async def check_list():
     global animelist
     #Check if new episodes got updated
-
-
+    
+    for i in range(len(animelist)):
+        link = animelist[i][1]
+        ep = animelist[i][2]
+        updated_ep = get_episode(link)
+        if ep<updated_ep:
+            #send update to ppl under name
+            animelist[i][2] = updated_ep
     
 
     #update ongoing anime list
@@ -118,23 +123,31 @@ async def check_list():
         if not found:
             new_anime.append(stuff)
 
-    for stuff in animelist:
-        name = stuff[0]
-        link = stuff[1]
+    for stuff in range(len(animelist)):
+        name = animelist[stuff][0]
+        link = animelist[stuff][1]
 
         if not name in ongoing:
-            done_anime.append(name)
+            done_anime.append([name,stuff])
 
     #remove the done anime
     print(done_anime)
+    for i in range(len(done_anime)):
+        print("Removing",done_anime[i][0])
+        del animelist[done_anime[i][1]-i]
+    
 
     #add the new anime
     print(new_anime)
+    for i in new_anime:
+        animelist.append([i[0],i[1],1])
+        #also announce new anime hear with message
+
+    #rewrite to file
     
         
 
-    #I need to add when a show is done -->
-    #check 
+    
 
         
 #To do:
@@ -159,4 +172,4 @@ Ep number, excess stuff
     
                 
 client.add_cog(Commands(client))
-client.run(TOKEN)
+#client.run(TOKEN)
