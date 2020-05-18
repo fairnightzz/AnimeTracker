@@ -25,11 +25,15 @@ def get_episode(soup):
     episodes = soup.find('div', id = "stats")
     
 
-#-------Startup-------    
+#-------Startup-------
+
+animelist = []
+
 client = commands.Bot(command_prefix="!")
 
 @client.event
 async def on_ready():
+    global animelist
     print("Anime has logged in")
     print(client.user.name)
     print(client.user.id)
@@ -38,7 +42,27 @@ async def on_ready():
     for server in client.guilds:
         print(server.name)
     print("Bot Status Set")
+
+
+
+    #Before you run tasks take the text file
+    file = open("animelist.txt","r")
+    anime = file.read().split("\n")
+    print(anime)
+    file.close()
+    animelist = []
+    
+    for i in range(len(anime)):
+        if anime[i] == "#####":
+            animelist.append([])
+        else:
+            animelist[-1].append(anime[i])
+
     check_list.start()
+
+
+
+    
     await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
 
 
@@ -65,14 +89,52 @@ class Commands(commands.Cog):
 #-------Background Tasks-------
 @tasks.loop(minutes = 10)
 async def check_list():
+    global animelist
+    #Check if new episodes got updated
+
+
+    
+
+    #update ongoing anime list
     print("Checking")
     soup = get_page("https://gogoanime.io/")
-    anime_list = get_list(soup)
-
+    online_list = get_list(soup)
+    
     #Cross reference with current list
+    new_anime = []
+    done_anime = []
+    ongoing = []
+    print(animelist,"this")
+    for stuff in online_list:
+        name = stuff[0]
+        link = stuff[1]
 
-    #then loop thru and get all da episodes
-    #anime_list = get_episode(soup)
+        found = False
+        for search in animelist:
+            if search[0] == name:
+                found = True
+                ongoing.append(name)
+                break
+        if not found:
+            new_anime.append(stuff)
+
+    for stuff in animelist:
+        name = stuff[0]
+        link = stuff[1]
+
+        if not name in ongoing:
+            done_anime.append(name)
+
+    #remove the done anime
+    print(done_anime)
+
+    #add the new anime
+    print(new_anime)
+    
+        
+
+    #I need to add when a show is done -->
+    #check 
 
         
 #To do:
@@ -98,4 +160,3 @@ Ep number, excess stuff
                 
 client.add_cog(Commands(client))
 client.run(TOKEN)
-
