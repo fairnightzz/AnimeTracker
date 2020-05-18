@@ -27,7 +27,7 @@ def get_episode(url):
     return last
     
 def first_time():
-    file = open("animelist.txt","w")
+    file = open("animelist.txt","w",encoding = 'utf-8')
     animelist = []
 
     soup = get_page("https://gogoanime.io/")
@@ -42,6 +42,7 @@ def first_time():
         ans+="#####\n"
         for things in animelist[i]:
             ans+=things+"\n"
+    print(ans)
     file.write(ans)
     file.close()
 #-------Startup-------
@@ -65,7 +66,7 @@ async def on_ready():
 
 
     #Before you run tasks take the text file
-    file = open("animelist.txt","r")
+    file = open("animelist.txt","r",encoding = 'utf-8')
     anime = file.read().split("\n")
     print(anime)
     file.close()
@@ -90,8 +91,8 @@ class Commands(commands.Cog):
         self.client = client
         
     @commands.command(help = "Gets the user's watch list")
-    async def user(self,ctx):
-        await ctx.channel.send("User {}'s list:".format(ctx.author))
+    async def view(self,ctx):
+        await ctx.channel.send("User {}'s list: haha jokes on u i havent done this part yet".format(ctx.author))
 
     @commands.command(help = "[Anime Name] to add an anime to your watch list")
     async def add(self,ctx,anime):
@@ -100,7 +101,7 @@ class Commands(commands.Cog):
         try:
             await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,anime))
         except:
-            await ctx.channel.send("Link failure")
+            await ctx.channel.send("Name failure")
 
 #-------Background Tasks-------
 @tasks.loop(minutes = 10)
@@ -166,7 +167,7 @@ async def check_list():
 
     #rewrite to file
     
-    file.open("animelist.txt","w")
+    file.open("animelist.txt","w",encoding = 'utf-8')
     ans = ""
     for i in range(len(animelist)):
         ans+="#####\n"
