@@ -26,9 +26,17 @@ def get_episode(url):
     last = soup.find('ul', id = "episode_page").li.a["ep_end"]
     return last
 
+def get_ep(name):
+    global animelist
+    for i in range(len(animelist)):
+        if name == animelist[i][0]:
+            return animelist[i][2]
+    return -1
+
 def get_recent():
-    
-    
+    soup = get_page("https://www19.gogoanime.io")
+    recent = [[i.p.a["title"],i.find('p',class_="episode").string.split()[1]] for i in soup.find('div',class_="last_episodes loaddub").find_all('li')]
+    return recent
 def first_time():
     file = open("animelist.txt","w",encoding = 'utf-8')
     animelist = []
@@ -46,6 +54,17 @@ def first_time():
         for things in animelist[i]:
             ans+=things+"\n"
     print(ans)
+    file.write(ans.strip())
+    file.close()
+
+def update():
+    global animelist
+    ans = ""
+    for i in range(len(animelist)):
+        ans+="#####\n"
+        for noob in range(len(animelist[i])):
+            ans+=animelist[i][noob]+"\n"
+    file = open("animelist.txt","w",encoding = 'utf-8')
     file.write(ans.strip())
     file.close()
 #-------Startup-------
@@ -99,46 +118,73 @@ class Commands(commands.Cog):
     async def add(self,ctx,*name):
         #search and add the latest thing
         animename = " ".join(name)
-        await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,animename))
-        try:
-            
-            for i in range(len(animelist)):
-                if animelist[i][0] == animename:
-                    animelist[i].append(ctx.author.id)
-                    
-            
-        except:
+        
+        found = False
+        for i in range(len(animelist)):
+            if animelist[i][0] == animename:
+                if not str(ctx.author.id) in animelist[i]:
+                    animelist[i].append(str(ctx.author.id))
+                    update()
+                    await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,animename))
+                else:
+                    await ctx.channel.send("You've already subbed to this anime.")
+                found = True
+                break
+        if not found:
             await ctx.channel.send("Name failure. Pls type the EXACT NAME LMAOOOOO")
+
+    @commands.command(help = "[Anime Name] if you want to stop following this anime.")
+    async def unsub(self,ctx,*name):
+        animename = " ".join(name)
+        found = False
+        for i in range(len(animelist)):
+            if animelist[i][0] == animename:
+                if not str(ctx.author.id) in animelist[i]:
+                    del animelist[i][animelist.index(str(ctx.author.id))]
+                    update()
+                    await ctx.channel.send("User {}'s list will be updated by removing {}.".format(ctx.author,animename))
+                else:
+                    await ctx.channel.send("You never subbed to this in the first place dummy.")
+                found = True
+                break
+        if not found:
+            await ctx.channel.send("Name failure. Pls type the EXACT NAME LMAOOOOO")
+        
+            
     @commands.command(help = "When you're a weeb and must have all the updates")
     async def suball(self,ctx):
         for i in range(len(animelist)):
-            animelist[i].append(ctx.author.id)
+            if not str(ctx.author.id) in animelist[i]:
+                    animelist[i].append(str(ctx.author.id))
+        update()
         await ctx.channel.send("Everything has been added. ".format(ctx.author))
+
+    
 
 #-------Background Tasks-------
         
 @tasks.loop(minutes = 10)
 async def check_list():
     global animelist
+
+    recent_releases = get_recent()
     #Check if new episodes got updated
-    
-    for i in range(len(animelist)):
-        link = animelist[i][1]
-        name = animelist[i][0]
-        ep = animelist[i][2]
-        updated_ep = get_episode(link)
-        if int(ep)<int(updated_ep):
-            #send update to ppl under name
-            for person in animelist[i][3:]:
-                p = client.get_user(int(person))
-                channel = await p.create_dm()
-                await channel.send("{} got a new update!".format(name))
-                
-            animelist[i][2] = updated_ep
+    for i in range(len(recent_releases)):
+        name = recent_releases[i][0]
+        updated_ep = recent_releases[i][1]
+        if 1<int(updated_ep):
+            ep = get_ep(name)
+            if int(ep)!=-1 and int(ep)<int(updated_ep):
+                #send update to ppl under name
+                for person in animelist[i][3:]:
+                    p = client.get_user(int(person))
+                    channel = await p.create_dm()
+                    await channel.send("{} got a new update!".format(name))
+                    
+                animelist[i][2] = updated_ep
     
 
     #update ongoing anime list
-    print("Checking")
     soup = get_page("https://gogoanime.io/")
     online_list = get_list(soup)
     
@@ -167,30 +213,19 @@ async def check_list():
             done_anime.append([name,stuff])
 
     #remove the done anime
-    print("done anime")
     for i in range(len(done_anime)):
         print("Removing",done_anime[i][0])
         del animelist[done_anime[i][1]-i]
     
 
     #add the new anime
-    print("new anime")
     for i in new_anime:
         animelist.append([i[0],i[1],'1'])
         #also announce new anime hear with message
 
     #rewrite to file
     
-    print(len(animelist),"Writing")
-    ans = ""
-    for i in range(len(animelist)):
-        ans+="#####\n"
-        for noob in range(len(animelist[i])):
-            ans+=animelist[i][noob]+"\n"
-    file = open("animelist.txt","w",encoding = 'utf-8')
-    file.write(ans.strip())
-    file.close()
-    print("done writing")
+    update()
 
 
     
