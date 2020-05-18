@@ -68,7 +68,6 @@ async def on_ready():
     #Before you run tasks take the text file
     file = open("animelist.txt","r",encoding = 'utf-8')
     anime = file.read().split("\n")
-    print(anime)
     file.close()
     animelist = []
     
@@ -95,13 +94,14 @@ class Commands(commands.Cog):
         await ctx.channel.send("User {}'s list: haha jokes on u i havent done this part yet".format(ctx.author))
 
     @commands.command(help = "[Anime Name] to add an anime to your watch list")
-    async def add(self,ctx,name):
+    async def add(self,ctx,*name):
         #search and add the latest thing
-        
+        animename = " ".join(name)
+        await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,animename))
         try:
-            await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,anime))
+            
             for i in range(len(animelist)):
-                if animelist[i][0] == name:
+                if animelist[i][0] == animename:
                     animelist[i].append(ctx.author)
             
         except:
@@ -117,7 +117,7 @@ class Commands(commands.Cog):
 async def check_list():
     global animelist
     #Check if new episodes got updated
-    """
+    
     for i in range(len(animelist)):
         link = animelist[i][1]
         name = animelist[i][0]
@@ -129,7 +129,7 @@ async def check_list():
                 await client.send_message(person,"{} got a new update!".format(name))
                 print(person)
             animelist[i][2] = updated_ep
-    """
+    
 
     #update ongoing anime list
     print("Checking")
