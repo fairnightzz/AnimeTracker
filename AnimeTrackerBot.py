@@ -76,14 +76,11 @@ async def on_ready():
             animelist.append([])
         else:
             animelist[-1].append(anime[i])
-
-    check_list.start()
-
-
-
     
     await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
-
+    print("start task")
+    check_list.start()
+    print("end task")
 
 class Commands(commands.Cog):
     def __init__(self, client):
@@ -102,14 +99,15 @@ class Commands(commands.Cog):
             
             for i in range(len(animelist)):
                 if animelist[i][0] == animename:
-                    animelist[i].append(ctx.author)
+                    animelist[i].append(ctx.author.id)
+                    
             
         except:
             await ctx.channel.send("Name failure. Pls type the EXACT NAME LMAOOOOO")
     @commands.command(help = "When you're a weeb and must have all the updates")
     async def suball(self,ctx):
         for i in range(len(animelist)):
-            animelist[i].append(ctx.author)
+            animelist[i].append(ctx.author.id)
         await ctx.channel.send("Everything has been added. ".format(ctx.author))
 
 #-------Background Tasks-------
@@ -125,9 +123,11 @@ async def check_list():
         updated_ep = get_episode(link)
         if int(ep)<int(updated_ep):
             #send update to ppl under name
-            for person in animelist[i][4:]:
-                await client.send_message(person,"{} got a new update!".format(name))
-                print(person)
+            for person in animelist[i][3:]:
+                p = client.get_user(int(person))
+                channel = await p.create_dm()
+                await channel.send("{} got a new update!".format(name))
+                
             animelist[i][2] = updated_ep
     
 
@@ -161,27 +161,31 @@ async def check_list():
             done_anime.append([name,stuff])
 
     #remove the done anime
-    print(done_anime)
+    print("done anime")
     for i in range(len(done_anime)):
         print("Removing",done_anime[i][0])
         del animelist[done_anime[i][1]-i]
     
 
     #add the new anime
-    print(new_anime)
+    print("new anime")
     for i in new_anime:
-        animelist.append([i[0],i[1],1])
+        animelist.append([i[0],i[1],'1'])
         #also announce new anime hear with message
 
     #rewrite to file
-    file = open("animelist.txt","w",encoding = 'utf-8')
+    
+    print(len(animelist),"Writing")
     ans = ""
     for i in range(len(animelist)):
         ans+="#####\n"
-        for things in animelist[i]:
-            ans+=things+"\n"
+        for noob in range(len(animelist[i])):
+            ans+=animelist[i][noob]+"\n"
+    file = open("animelist.txt","w",encoding = 'utf-8')
     file.write(ans.strip())
     file.close()
+    print("done writing")
+
 
     
 
