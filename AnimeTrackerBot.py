@@ -37,6 +37,7 @@ def get_recent():
     soup = get_page("https://www19.gogoanime.io")
     recent = [[i.p.a["title"],i.find('p',class_="episode").string.split()[1]] for i in soup.find('div',class_="last_episodes loaddub").find_all('li')]
     return recent
+
 def first_time():
     file = open("animelist.txt","w",encoding = 'utf-8')
     animelist = []
@@ -67,6 +68,8 @@ def update():
     file = open("animelist.txt","w",encoding = 'utf-8')
     file.write(ans.strip())
     file.close()
+
+    
 #-------Startup-------
 
 animelist = []
@@ -88,7 +91,6 @@ async def on_ready():
     await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
     if not started:
         started = True
-
         #Before you run tasks take the text file
         file = open("animelist.txt","r",encoding = 'utf-8')
         anime = file.read().split("\n")
@@ -106,6 +108,7 @@ async def on_ready():
         check_list.start()
         print("end task")
 
+#-----Commands-----
 class Commands(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -122,7 +125,7 @@ class Commands(commands.Cog):
         found = False
         for i in range(len(animelist)):
             if animelist[i][0] == animename:
-                if not str(ctx.author.id) in animelist[i]:
+                if not str(ctx.author.id) in [n.lower() for n in animelist[i]]:
                     animelist[i].append(str(ctx.author.id))
                     update()
                     await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,animename))
@@ -195,7 +198,7 @@ async def check_list():
                     channel = await p.create_dm()
                     await channel.send("{} got a new update!".format(name))
                     
-                animelist[data[1]][2] = updated_ep
+            animelist[data[1]][2] = updated_ep
     
 
     #update ongoing anime list
