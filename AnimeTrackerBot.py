@@ -115,7 +115,7 @@ class Commands(commands.Cog):
         await ctx.channel.send("User {}'s list: haha jokes on u i havent done this part yet".format(ctx.author))
 
     @commands.command(help = "[Anime Name] to add an anime to your watch list")
-    async def add(self,ctx,*name):
+    async def sub(self,ctx,*name):
         #search and add the latest thing
         animename = " ".join(name)
         
@@ -131,7 +131,20 @@ class Commands(commands.Cog):
                 found = True
                 break
         if not found:
-            await ctx.channel.send("Name failure. Pls type the EXACT NAME LMAOOOOO")
+            closest = []
+            for anime in animelist:
+                animewords = anime[0].lower().split()
+                for w in animewords:
+                    if w.find(animename.lower())!=-1:
+                        closest.append(anime[0])
+                        break
+            closest.sort()
+            if len(closest)!=0:
+                ans = "\n".join(closest)
+                
+                await ctx.channel.send("Name failure. Did you mean \n{}".format(ans))
+            else:
+                await ctx.channel.send("Name failure. No matches sorry :(")
 
     @commands.command(help = "[Anime Name] if you want to stop following this anime.")
     async def unsub(self,ctx,*name):
