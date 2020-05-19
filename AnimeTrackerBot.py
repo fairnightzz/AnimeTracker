@@ -30,8 +30,8 @@ def get_ep(name):
     global animelist
     for i in range(len(animelist)):
         if name == animelist[i][0]:
-            return animelist[i][2]
-    return -1
+            return [animelist[i][2],i]
+    return [-1,0]
 
 def get_recent():
     soup = get_page("https://www19.gogoanime.io")
@@ -85,7 +85,7 @@ async def on_ready():
     for server in client.guilds:
         print(server.name)
     print("Bot Status Set")
-
+    await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
     if not started:
         started = True
 
@@ -101,7 +101,7 @@ async def on_ready():
             else:
                 animelist[-1].append(anime[i])
         
-        await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
+        
         print("start task")
         check_list.start()
         print("end task")
@@ -186,15 +186,16 @@ async def check_list():
         name = recent_releases[i][0]
         updated_ep = recent_releases[i][1]
         if 1<int(updated_ep):
-            ep = get_ep(name)
+            data = get_ep(name)
+            ep = data[0]
             if int(ep)!=-1 and int(ep)<int(updated_ep):
                 #send update to ppl under name
-                for person in animelist[i][3:]:
+                for person in animelist[data[1]][3:]:
                     p = client.get_user(int(person))
                     channel = await p.create_dm()
                     await channel.send("{} got a new update!".format(name))
                     
-                animelist[i][2] = updated_ep
+                animelist[data[1]][2] = updated_ep
     
 
     #update ongoing anime list
