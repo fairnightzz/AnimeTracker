@@ -33,13 +33,23 @@ def get_ep(name):
             return [animelist[i][2],i]
     return [-1,0]
 
+def get_user_list(person):
+    global animelist
+    llist = []
+    for anime in (animelist):
+        for num in anime:
+            if str(person) == str(num):
+                llist.append(":".join([anime[0],anime[2]]))
+    return "\n".join(llist)
+    
+
 def get_recent():
     soup = get_page("https://www19.gogoanime.io")
     recent = [[i.p.a["title"],i.find('p',class_="episode").string.split()[1]] for i in soup.find('div',class_="last_episodes loaddub").find_all('li')]
     return recent
 
 def first_time():
-    file = open("animelist.txt","w",encoding = 'utf-8')
+    
     animelist = []
 
     soup = get_page("https://gogoanime.io/")
@@ -55,6 +65,7 @@ def first_time():
         for things in animelist[i]:
             ans+=things+"\n"
     print(ans)
+    file = open("animelist.txt","w",encoding = 'utf-8')
     file.write(ans.strip())
     file.close()
 
@@ -80,14 +91,7 @@ client = commands.Bot(command_prefix="!")
 async def on_ready():
     global started
     global animelist
-    print("Anime has logged in")
-    print(client.user.name)
-    print(client.user.id)
-    print("-----")
-    print("Anime bot is in the servers:")
-    for server in client.guilds:
-        print(server.name)
-    print("Bot Status Set")
+    print("Anime is ready again")
     await client.change_presence(activity = discord.Game(name = '!help for a list of commands'))
     if not started:
         started = True
@@ -115,7 +119,11 @@ class Commands(commands.Cog):
         
     @commands.command(help = "Gets the user's watch list")
     async def view(self,ctx):
-        await ctx.channel.send("User {}'s list: haha jokes on u i havent done this part yet".format(ctx.author))
+        person = ctx.author.id
+        message = get_user_list(person)
+        for i in range(0,len(message),2000):
+            await ctx.channel.send(message[i:i+2000])
+                
 
     @commands.command(help = "[Anime Name] to add an anime to your watch list")
     async def sub(self,ctx,*name):
@@ -124,8 +132,8 @@ class Commands(commands.Cog):
         
         found = False
         for i in range(len(animelist)):
-            if animelist[i][0] == animename:
-                if not str(ctx.author.id) in [n.lower() for n in animelist[i]]:
+            if animelist[i][0].lower() == animename.lower():
+                if not str(ctx.author.id) in animelist[i]:
                     animelist[i].append(str(ctx.author.id))
                     update()
                     await ctx.channel.send("User {}'s list will be updated to include {}.".format(ctx.author,animename))
@@ -175,6 +183,7 @@ class Commands(commands.Cog):
         update()
         await ctx.channel.send("Everything has been added. ".format(ctx.author))
 
+    
     
 
 #-------Background Tasks-------
@@ -239,10 +248,14 @@ async def check_list():
     for i in new_anime:
         animelist.append([i[0],i[1],'1'])
         #also announce new anime hear with message
+        for server in client.guilds:
+            server.defaultChannel.send("{}, a new anime has just been released!".format(i[0]))
+            
 
     #rewrite to file
     
     update()
+    print("Checking",len(animelist))
 
 
     
@@ -265,7 +278,8 @@ Ep number, excess stuff
 
 """
     
-        
+#Auto sub
+#Ping ppl about new anime
 
     
                 
